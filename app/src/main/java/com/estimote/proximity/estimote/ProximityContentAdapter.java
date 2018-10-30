@@ -12,10 +12,6 @@ import com.estimote.proximity.R;
 import java.util.ArrayList;
 import java.util.List;
 
-//
-// Running into any issues? Drop us an email to: contact@estimote.com
-//
-
 public class ProximityContentAdapter extends BaseAdapter {
 
     private Context context;

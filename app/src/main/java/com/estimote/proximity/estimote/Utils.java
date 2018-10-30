@@ -4,10 +4,6 @@ import android.graphics.Color;
 
 import com.estimote.proximity.R;
 
-//
-// Running into any issues? Drop us an email to: contact@estimote.com
-//
-
 class Utils {
 
     static String getShortIdentifier(String deviceIdentifier) {

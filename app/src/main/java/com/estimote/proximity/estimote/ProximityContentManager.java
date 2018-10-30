@@ -17,10 +17,6 @@ import java.util.Set;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
-//
-// Running into any issues? Drop us an email to: contact@estimote.com
-//
-
 public class ProximityContentManager {
 
     private Context context;
