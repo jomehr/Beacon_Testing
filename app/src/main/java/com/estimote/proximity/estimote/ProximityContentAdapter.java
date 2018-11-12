@@ -20,20 +20,20 @@ public class ProximityContentAdapter extends BaseAdapter {
         this.context = context;
     }
 
-    private List<ProximityContent> nearbyContent = new ArrayList<>();
+    private List<ProximityContent> nearbyContentList = new ArrayList<>();
 
-    public void setNearbyContent(List<ProximityContent> nearbyContent) {
-        this.nearbyContent = nearbyContent;
+    void setNearbyContent(List<ProximityContent> nearbyContent) {
+        this.nearbyContentList = nearbyContent;
     }
 
     @Override
     public int getCount() {
-        return nearbyContent.size();
+        return nearbyContentList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return nearbyContent.get(position);
+        return nearbyContentList.get(position);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class ProximityContentAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.content_view, parent, false);
         }
 
-        ProximityContent content = nearbyContent.get(position);
+        ProximityContent content = nearbyContentList.get(position);
 
         TextView title = convertView.findViewById(R.id.title);
         TextView subtitle = convertView.findViewById(R.id.subtitle);
