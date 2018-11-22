@@ -63,4 +63,6 @@ public class ProximityContentAdapter extends BaseAdapter {
 
         return convertView;
     }
+
+
 }

@@ -1,12 +1,16 @@
 package com.estimote.proximity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.estimote.mustard.rx_goodness.rx_requirements_wizard.Requirement;
 import com.estimote.mustard.rx_goodness.rx_requirements_wizard.RequirementsWizardFactory;
+
 import com.estimote.proximity.estimote.ProximityContentAdapter;
 import com.estimote.proximity.estimote.ProximityContentManager;
 
@@ -27,9 +31,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         proximityContentAdapter = new ProximityContentAdapter(this);
-        GridView gridView = findViewById(R.id.gridView);
+        final GridView gridView = findViewById(R.id.gridView);
         gridView.setAdapter(proximityContentAdapter);
 
+/*        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                new ProximityContent((ProximityContent)proximityContentAdapter.getItem(position));
+            }
+        });*/
 
         RequirementsWizardFactory
                 .createEstimoteRequirementsWizard()
@@ -70,4 +80,11 @@ public class MainActivity extends AppCompatActivity {
             proximityContentManager.stop();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (proximityContentManager == null)
+            proximityContentManager = new ProximityContentManager(this, proximityContentAdapter, ((MyApplication) getApplication()).cloudCredentials);
+            proximityContentManager.start();
+    }
 }

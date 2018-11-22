@@ -4,13 +4,13 @@ import android.graphics.Color;
 
 import com.estimote.proximity.R;
 
-class Utils {
+public class Utils {
 
     static String getShortIdentifier(String deviceIdentifier) {
         return deviceIdentifier.substring(0, 4) + "..." + deviceIdentifier.substring(28, 32);
     }
 
-    static int getEstimoteColor(String colorName) {
+    public static int getEstimoteColor(String colorName) {
         switch (colorName) {
             case "ice":
                 return Color.rgb(109, 170, 199);

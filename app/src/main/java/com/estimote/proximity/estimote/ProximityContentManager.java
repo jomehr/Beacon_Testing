@@ -2,12 +2,11 @@ package com.estimote.proximity.estimote;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
-import com.estimote.coresdk.observation.region.RegionUtils;
-import com.estimote.coresdk.observation.region.beacon.BeaconRegion;
-
-import com.estimote.coresdk.service.BeaconManager;
+import com.estimote.proximity.DetailActivity;
+import com.estimote.proximity.MainActivity;
 import com.estimote.proximity_sdk.api.EstimoteCloudCredentials;
 import com.estimote.proximity_sdk.api.ProximityObserver;
 import com.estimote.proximity_sdk.api.ProximityObserverBuilder;
@@ -24,12 +23,12 @@ import kotlin.jvm.functions.Function1;
 
 public class ProximityContentManager {
 
+    private static final String TAG = "ProximityContentManager";
+
     private Context context;
     private ProximityContentAdapter proximityContentAdapter;
     private EstimoteCloudCredentials cloudCredentials;
     private ProximityObserver.Handler proximityObserverHandler;
-
-    private BeaconManager beaconManager;
 
     private String title, subtitle;
 
@@ -41,46 +40,38 @@ public class ProximityContentManager {
 
     public void start() {
 
-        beaconManager = new BeaconManager(context);
-
-        ProximityObserver proximityObserver = new ProximityObserverBuilder(context, cloudCredentials)
+        final ProximityObserver proximityObserver = new ProximityObserverBuilder(context, cloudCredentials)
                 .onError(new Function1<Throwable, Unit>() {
                     @Override
                     public Unit invoke(Throwable throwable) {
-                        Log.e("app", "proximity observer error: " + throwable);
+                        Log.e(TAG, "proximity observer error: " + throwable);
                         return null;
                     }
                 })
                 .withBalancedPowerMode()
+                .withEstimoteSecureMonitoringDisabled()
+                .withTelemetryReportingDisabled()
                 .build();
 
-        ProximityZone zone3 = new ProximityZoneBuilder()
+        ProximityZone zonefar = new ProximityZoneBuilder()
                 .forTag("moxdbeacons-gmail-com-s-pr-a01")
-                .inCustomRange(3)
+                .inCustomRange(5)
                 .onContextChange(new Function1<Set<? extends ProximityZoneContext>, Unit>() {
                     @Override
                     public Unit invoke(Set<? extends ProximityZoneContext> contexts) {
+
+                        Log.d(TAG, "farzone");
 
                         List<ProximityContent> nearbyContent = new ArrayList<>();
 
                         for (ProximityZoneContext proximityContext : contexts) {
 
-                            beaconManager.setRangingListener(new BeaconManager.BeaconRangingListener() {
-                                @Override
-                                public void onBeaconsDiscovered(BeaconRegion beaconRegion, List<com.estimote.coresdk.recognition.packets.Beacon> beacons) {
-                                    if (!beacons.isEmpty()) {
-                                        subtitle = String.format("%d", beacons.get(0).getRssi()) + String.format("%s", RegionUtils.computeAccuracy(beacons.get(0))) ;
-                                    }
-                                }
-                            });
+                            subtitle = "~5m entfernt";
 
                             title = proximityContext.getAttachments().get("title");
                             if (title == null) {
                                 title = "unknown";
                             }
-                            //String subtitle = Utils.getShortIdentifier(proximityContext.getDeviceId());
-                            //subtitle = "~1m entfernt";
-
                             nearbyContent.add(new ProximityContent(title, subtitle));
                         }
 
@@ -92,217 +83,35 @@ public class ProximityContentManager {
                 })
                 .build();
 
-/*        ProximityZone mintClose = new ProximityZoneBuilder()
-                .forTag("mint")
-                .inNearRange()
-                .onEnter(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-                        String title = context.getAttachments().get("title");
-                        if (title == null) {
-                            title = "unknown";
-                        }
-                        String subtitle = "~ 1 meter (sehr Nah)";
-
-                        ProximityContent mintDistance = new ProximityContent(title, subtitle);
-                        nearbyContent.add(0, mintDistance);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .onExit(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-
-                        nearbyContent.remove(0);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .build();
-
-        ProximityZone mintFar = new ProximityZoneBuilder()
-                .forTag("mint")
-                .inFarRange()
-                .onEnter(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-                        String title = context.getAttachments().get("title");
-                        if (title == null) {
-                            title = "unknown";
-                        }
-                        String subtitle = "~ 5 meter (in der Umgebung)";
-
-                        ProximityContent mintDistance = new ProximityContent(title, subtitle);
-                        nearbyContent.add(0, mintDistance);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .onExit(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-
-                        nearbyContent.remove(0);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .build();
-
-        ProximityZone iceClose = new ProximityZoneBuilder()
+        ProximityZone ice = new ProximityZoneBuilder()
                 .forTag("ice")
                 .inNearRange()
                 .onEnter(new Function1<ProximityZoneContext, Unit>() {
                     @Override
-                    public Unit invoke(ProximityZoneContext context) {
-                        String title = context.getAttachments().get("title");
-                        if (title == null) {
-                            title = "unknown";
-                        }
-                        String subtitle = "~ 1 meter (sehr Nah)";
+                    public Unit invoke(ProximityZoneContext proximityContext) {
+                        Log.d(TAG, "ice enter");
 
-                        ProximityContent mintDistance = new ProximityContent(title, subtitle);
-                        nearbyContent.add(1, mintDistance);
+                        Intent intent = new Intent(context, DetailActivity.class);
+                        intent.putExtra("title", proximityContext.getAttachments().get("title"));
+                        intent.putExtra("subtitle", "Hier könnten eine Detailübersicht sein");
 
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
 
+
+                        context.startActivity(intent);
                         return null;
                     }
                 })
                 .onExit(new Function1<ProximityZoneContext, Unit>() {
                     @Override
-                    public Unit invoke(ProximityZoneContext context) {
-
-                        nearbyContent.remove(1);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
+                    public Unit invoke(ProximityZoneContext proximityContext) {
+                        Log.d(TAG, "ice exit");
+                        context.startActivity(new Intent(context, MainActivity.class));
                         return null;
                     }
                 })
                 .build();
 
-        ProximityZone iceFar = new ProximityZoneBuilder()
-                .forTag("ice")
-                .inFarRange()
-                .onEnter(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-                        String title = context.getAttachments().get("title");
-                        if (title == null) {
-                            title = "unknown";
-                        }
-                        String subtitle = "~ 5 meter (in der Umgebung)";
-
-                        ProximityContent mintDistance = new ProximityContent(title, subtitle);
-                        nearbyContent.add(1, mintDistance);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .onExit(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-
-                        nearbyContent.remove(1);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .build();
-
-        ProximityZone blueClose = new ProximityZoneBuilder()
-                .forTag("blueberry")
-                .inNearRange()
-                .onEnter(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-                        String title = context.getAttachments().get("title");
-                        if (title == null) {
-                            title = "unknown";
-                        }
-                        String subtitle = "~ 1 meter (sehr Nah)";
-
-                        ProximityContent mintDistance = new ProximityContent(title, subtitle);
-                        nearbyContent.add(2, mintDistance);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .onExit(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-
-                        nearbyContent.remove(2);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .build();
-
-        ProximityZone blueFar = new ProximityZoneBuilder()
-                .forTag("blueberry")
-                .inFarRange()
-                .onEnter(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-                        String title = context.getAttachments().get("title");
-                        if (title == null) {
-                            title = "unknown";
-                        }
-                        String subtitle = "~ 5 meter (in der Umgebung)";
-
-                        ProximityContent mintDistance = new ProximityContent(title, subtitle);
-                        nearbyContent.add(2, mintDistance);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .onExit(new Function1<ProximityZoneContext, Unit>() {
-                    @Override
-                    public Unit invoke(ProximityZoneContext context) {
-
-                        nearbyContent.remove(2);
-
-                        proximityContentAdapter.setNearbyContent(nearbyContent);
-                        proximityContentAdapter.notifyDataSetChanged();
-
-                        return null;
-                    }
-                })
-                .build();*/
-
-        proximityObserverHandler = proximityObserver.startObserving(zone3);
+        proximityObserverHandler = proximityObserver.startObserving(zonefar, ice);
     }
 
     public void stop() {
